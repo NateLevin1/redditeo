@@ -5,28 +5,28 @@
  * delete this file.
  */
 
-import {bundle} from '@remotion/bundler';
+import { bundle } from "@remotion/bundler";
 import {
 	getCompositions,
 	renderFrames,
 	stitchFramesToVideo,
-} from '@remotion/renderer';
-import express from 'express';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+} from "@remotion/renderer";
+import express from "express";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
 const app = express();
 const port = process.env.PORT || 8000;
-const compositionId = 'HelloWorld';
+const compositionId = "PostView";
 
 const cache = new Map<string, string>();
 
-app.get('/', async (req, res) => {
+app.get("/", async (req, res) => {
 	const sendFile = (file: string) => {
 		fs.createReadStream(file)
 			.pipe(res)
-			.on('close', () => {
+			.on("close", () => {
 				res.end();
 			});
 	};
@@ -35,21 +35,21 @@ app.get('/', async (req, res) => {
 			sendFile(cache.get(JSON.stringify(req.query)) as string);
 			return;
 		}
-		const bundled = await bundle(path.join(__dirname, './src/index.tsx'));
-		const comps = await getCompositions(bundled, {inputProps: req.query});
+		const bundled = await bundle(path.join(__dirname, "./src/index.tsx"));
+		const comps = await getCompositions(bundled, { inputProps: req.query });
 		const video = comps.find((c) => c.id === compositionId);
 		if (!video) {
 			throw new Error(`No video called ${compositionId}`);
 		}
-		res.set('content-type', 'video/mp4');
+		res.set("content-type", "video/mp4");
 
 		const tmpDir = await fs.promises.mkdtemp(
-			path.join(os.tmpdir(), 'remotion-')
+			path.join(os.tmpdir(), "remotion-")
 		);
-		const {assetsInfo} = await renderFrames({
+		const { assetsInfo } = await renderFrames({
 			config: video,
 			webpackBundle: bundled,
-			onStart: () => console.log('Rendering frames...'),
+			onStart: () => console.log("Rendering frames..."),
 			onFrameUpdate: (f) => {
 				if (f % 10 === 0) {
 					console.log(`Rendered frame ${f}`);
@@ -59,10 +59,10 @@ app.get('/', async (req, res) => {
 			outputDir: tmpDir,
 			inputProps: req.query,
 			compositionId,
-			imageFormat: 'jpeg',
+			imageFormat: "jpeg",
 		});
 
-		const finalOutput = path.join(tmpDir, 'out.mp4');
+		const finalOutput = path.join(tmpDir, "out.mp4");
 		await stitchFramesToVideo({
 			dir: tmpDir,
 			force: true,
@@ -70,12 +70,12 @@ app.get('/', async (req, res) => {
 			height: video.height,
 			width: video.width,
 			outputLocation: finalOutput,
-			imageFormat: 'jpeg',
+			imageFormat: "jpeg",
 			assetsInfo,
 		});
 		cache.set(JSON.stringify(req.query), finalOutput);
 		sendFile(finalOutput);
-		console.log('Video rendered and sent!');
+		console.log("Video rendered and sent!");
 	} catch (err) {
 		console.error(err);
 		res.json({
@@ -89,11 +89,11 @@ app.listen(port);
 console.log(
 	[
 		`The server has started on http://localhost:${port}!`,
-		'You can render a video by passing props as URL parameters.',
-		'',
-		'If you are running Hello World, try this:',
-		'',
+		"You can render a video by passing props as URL parameters.",
+		"",
+		"If you are running Hello World, try this:",
+		"",
 		`http://localhost:${port}?titleText=Hello,+World!&titleColor=red`,
-		'',
-	].join('\n')
+		"",
+	].join("\n")
 );
