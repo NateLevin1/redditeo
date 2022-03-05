@@ -1,3 +1,4 @@
+import { Img } from "remotion";
 import { Text } from "./Helpers/Text";
 import { useProgress } from "./Helpers/useProgress";
 import image from "./testimg.png";
@@ -16,22 +17,22 @@ export const PostView = () => {
 			}}
 		>
 			{/* Blurred bg image */}
-			<img
+			<Img
 				style={{
-					width: "110%",
-					height: "110%",
+					width: "120%",
+					height: "120%",
 					position: "absolute",
-					top: "-5%",
+					top: `calc(-5% + ${progress * -10}%)`,
 					left: "-5%",
 					zIndex: "0",
 					filter: "blur(24px) hue-rotate(-15deg) brightness(0.8)",
 					objectFit: "cover",
 				}}
 				src={image}
-			></img>
+			/>
 
 			{/* Main image */}
-			<img
+			<Img
 				style={{
 					width: "100%",
 					height: "85%",
@@ -41,7 +42,7 @@ export const PostView = () => {
 					zIndex: "2",
 				}}
 				src={image}
-			></img>
+			/>
 
 			{/* Text */}
 			<div
@@ -51,7 +52,20 @@ export const PostView = () => {
 					bottom: "6%",
 				}}
 			>
-				<Text>I feel bad too</Text>
+				<Text randomColor>I feel bad too</Text>
+			</div>
+
+			{/* User+subreddit */}
+			<div
+				style={{
+					position: "absolute",
+					bottom: "3%",
+					left: "5%",
+				}}
+			>
+				<Text style={{ fontSize: "2.5em" }}>
+					u/yxingalisa on r/ProgrammerHumor
+				</Text>
 			</div>
 		</div>
 	);
