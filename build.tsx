@@ -28,7 +28,7 @@ const postId = "t7eyvw";
 	if (postId) {
 		// by reddit ID
 		// @ts-ignore
-		currentPost = await snoowrap.getSubmission("t6plc4");
+		currentPost = await snoowrap.getSubmission(postId);
 	} else {
 		// by top post
 		// @ts-ignore
@@ -75,6 +75,10 @@ const postId = "t7eyvw";
 	};
 	console.log("Successfully got the top post! Input props are: ");
 	console.log(inputProps);
+	console.log("Stringified version: (for use in package.json start script)");
+	console.log(
+		JSON.stringify(inputProps).replace(/"/g, '\\"').replace(/'/g, "'\\\\''")
+	);
 
 	// * #### Actually do the generating of the video
 	try {

@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Convert Reddit posts to a YT-shorts-compatible video.",
 	"scripts": {
-		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"I feel bad too\",\"user\":\"yxingalisa\",\"subreddit\":\"r/ProgrammerHumor\",\"seconds\":6,\"imageUrl\":\"https://i.redd.it/auszw0gmuel81.png\"},\"comment\":{\"text\":\"Why can’t git just merge for me\",\"username\":\"soggy_chili_dog\",\"pfp\":\"https://styles.redditmedia.com/t5_v67gu/styles/profileIcon_snooffdcaa33-ced8-43c8-8556-da3d3905a1cd-headshot-f.png?width=256&height=256&crop=256:256,smart&s=7a39acd828990c1f7c0de749a34a00e4af34ba02\",\"upvotes\":764,\"seconds\":6}}'",
+		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"In case you still don'\\''t know how to implement isEven\",\"user\":\"nextlandia\",\"subreddit\":\"r/ProgrammerHumor\",\"seconds\":6,\"imageUrl\":\"https://i.redd.it/07c0cdvitll81.jpg\"},\"comment\":{\"text\":\"POV - you are a computer performing machine learning at 0.000000000001x speed\",\"username\":\"adj16\",\"pfp\":\"https://www.redditstatic.com/avatars/defaults/v2/avatar_default_3.png\",\"upvotes\":2668,\"seconds\":6}}'",
 		"remotionBuild": "remotion render src/index.tsx PostView out/video.mp4",
 		"upgrade": "remotion upgrade",
 		"build": "ts-node build.tsx",
