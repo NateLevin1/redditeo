@@ -54,7 +54,7 @@ export const PostView = () => {
 			<Img
 				style={{
 					width: "100%",
-					height: "85%",
+					height: "75%",
 					objectFit: "contain",
 					position: "relative",
 					filter: "drop-shadow(0px 4px 16px rgba(0,0,0,0.75))",
