@@ -13,9 +13,13 @@ export const Text = ({
 	style?: CSSProperties;
 	randomColor?: boolean;
 }) => {
+	const content = Array.isArray(children)
+		? children.join("")
+		: children.toString();
+
 	const color = useMemo(() => {
 		if (randomColor) {
-			return getRandomColor(children + "");
+			return getRandomColor(content);
 		}
 		return "white";
 	}, []);
@@ -23,14 +27,18 @@ export const Text = ({
 	return (
 		<div
 			style={{
-				fontSize: "10.5em",
+				fontSize: `${10.5 - content.length * 0.065}em`,
 				lineHeight: "0.89em",
 				color: color,
 				WebkitTextStroke: "0.06em black",
+				width: "100%",
+				overflowWrap: "break-word",
+				padding: "0em 0.05em",
+				textShadow: "0px 0.02em 0.1em rgba(0,0,0,0.5)",
 				...style,
 			}}
 		>
-			{children ?? "[Empty Text]"}
+			{content ?? "[Empty Text]"}
 		</div>
 	);
 };
