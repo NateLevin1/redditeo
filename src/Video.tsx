@@ -1,10 +1,16 @@
-import { Composition } from "remotion";
+import { Composition, getInputProps } from "remotion";
 import { PostView } from "./PostView";
 import "./font.css";
+import { InputProps } from "./Helpers/InputProps";
 
-const fps = 30;
-const seconds = 10;
 export const RemotionVideo: React.FC = () => {
+	const fps = 30;
+	const {
+		post: { seconds: postSeconds },
+		comment: { seconds: commentSeconds },
+	} = getInputProps() as InputProps;
+	const seconds = postSeconds + commentSeconds;
+
 	return (
 		<>
 			<Composition

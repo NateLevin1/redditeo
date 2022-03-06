@@ -1,25 +1,23 @@
-import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+	getInputProps,
+	Img,
+	interpolate,
+	useCurrentFrame,
+	useVideoConfig,
+} from "remotion";
 import { Comment } from "./Helpers/Comment";
+import { InputProps } from "./Helpers/InputProps";
 import { Text } from "./Helpers/Text";
 import { useProgress } from "./Helpers/useProgress";
-import image from "./testimg.png";
 
 export const PostView = () => {
-	const title = "I feel bad too";
-	const user = "u/yxingalisa";
-	const subreddit = "r/ProgrammerHumor";
-	const secondsUntilComment = 6;
-	const comment = {
-		text: "You know what helped me learn to code? Latin. Strongly typed, brutal syntax. And when you finally finish your glorious work, they just hand you more.",
-		username: "OkCatch8292",
-		pfp: "https://www.redditstatic.com/avatars/defaults/v2/avatar_default_1.png",
-		upvotes: "1.9k",
-	};
+	const { post, comment } = getInputProps() as InputProps;
+	const { title, user, subreddit, seconds: postSeconds, imageUrl } = post;
 
 	const progress = useProgress();
 	const frame = useCurrentFrame();
 	const { durationInFrames, fps } = useVideoConfig();
-	const framesUntilComment = fps * secondsUntilComment;
+	const framesUntilComment = fps * postSeconds;
 	const commentTop = interpolate(
 		frame,
 		[0, framesUntilComment, framesUntilComment + 10, durationInFrames],
@@ -49,7 +47,7 @@ export const PostView = () => {
 					objectFit: "cover",
 					transform: `scale(${1 + progress * 0.05})`,
 				}}
-				src={image}
+				src={imageUrl}
 			/>
 
 			{/* Main image/comment */}
@@ -63,7 +61,7 @@ export const PostView = () => {
 					zIndex: "2",
 					bottom: `${100 - commentTop}%`,
 				}}
-				src={image}
+				src={imageUrl}
 			/>
 			<Comment {...comment} topOffset={commentTop} />
 
