@@ -9,42 +9,21 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import Snoowrap, { Submission, Subreddit } from "snoowrap";
+import prompts from "prompts";
 
-const postId = "t7eyvw";
+const compositionId = "PostView";
+const snoowrap = new Snoowrap({
+	userAgent:
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
+	// to get these values, see https://browntreelabs.com/scraping-reddits-api-with-snoowrap/
+	// put them in a .env file in this folder
+	clientId: process.env.clientId,
+	clientSecret: process.env.clientSecret,
+	refreshToken: process.env.refreshToken,
+});
 
-(async function () {
-	const compositionId = "PostView";
-	// * #### Get the top reddit post/post from postId
-	const snoowrap = new Snoowrap({
-		userAgent:
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
-		// to get these values, see https://browntreelabs.com/scraping-reddits-api-with-snoowrap/
-		// put them in a .env file in this folder
-		clientId: process.env.clientId,
-		clientSecret: process.env.clientSecret,
-		refreshToken: process.env.refreshToken,
-	});
-	let currentPost: Submission | undefined;
-	if (postId) {
-		// by reddit ID
-		// @ts-ignore
-		currentPost = await snoowrap.getSubmission(postId);
-	} else {
-		// by top post
-		// @ts-ignore
-		const subreddit = (await snoowrap.getSubreddit(
-			"programmerhumor"
-		)) as Subreddit;
-		// TODO: awaiting here is too early, we are fetching all data
-		const topPosts = await subreddit.getTop({ time: "day", limit: 5 });
-		for (const post of topPosts) {
-			if (!post.is_video && !post.over_18) {
-				currentPost = post;
-				break;
-			}
-		}
-	}
-	if (!currentPost) return;
+async function createVideoFromPost(currentPost: Submission) {
+	// * #### Get the post from reddit
 
 	let topComment;
 	let index = 0;
@@ -73,9 +52,9 @@ const postId = "t7eyvw";
 			seconds: 6,
 		},
 	};
-	console.log("Successfully got the top post! Input props are: ");
-	console.log(inputProps);
-	console.log("Stringified version: (for use in package.json start script)");
+	console.log(
+		"Stringified input props: (for use in package.json start script)"
+	);
 	console.log(
 		JSON.stringify(inputProps).replace(/"/g, '\\"').replace(/'/g, "'\\\\''")
 	);
@@ -100,7 +79,7 @@ const postId = "t7eyvw";
 			onStart: () => console.log("Rendering frames..."),
 			onFrameUpdate: (f) => {
 				if (f % 10 === 0) {
-					console.log(`Rendered frame ${f}`);
+					process.stdout.write(`Rendered frame ${f}\r`);
 				}
 			},
 			parallelism: null,
@@ -122,7 +101,58 @@ const postId = "t7eyvw";
 			assetsInfo,
 		});
 		console.log("Finished rendering! " + finalOutput);
+		return finalOutput;
 	} catch (err) {
 		console.error(err);
+	}
+}
+
+(async function () {
+	const { singleOrTop } = await prompts({
+		type: "autocomplete",
+		name: "singleOrTop",
+		message: "Single post or top of past day?",
+		choices: [{ title: "single" }, { title: "top" }],
+	});
+	console.log(singleOrTop);
+
+	if (singleOrTop === "single") {
+		const { postId } = await prompts({
+			type: "text",
+			name: "postId",
+			message: "Please enter the ID of the post (eg t7w271)",
+		});
+		// @ts-ignore
+		const post = (await snoowrap.getSubmission(postId)) as Submission;
+		await createVideoFromPost(post);
+	} else {
+		const { number } = await prompts({
+			type: "number",
+			name: "number",
+			message: "How many of the top posts should be used?",
+			min: 1,
+			max: 50,
+		});
+		let paths: string[] = [];
+
+		// @ts-ignore
+		const subreddit = (await snoowrap.getSubreddit(
+			"programmerhumor"
+		)) as Subreddit;
+
+		const topPosts = await subreddit.getTop({ time: "day", limit: number });
+		for (const post of topPosts) {
+			if (!post.is_video && !post.over_18) {
+				const path = await createVideoFromPost(post);
+				if (path) {
+					paths.push(path);
+				}
+			}
+		}
+
+		console.log("\n\n\nCREATED VIDEOS!");
+		for (const path of paths) {
+			console.log(path);
+		}
 	}
 })();
