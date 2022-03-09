@@ -1,10 +1,12 @@
 import {
+	Audio,
 	getInputProps,
 	Img,
 	interpolate,
 	useCurrentFrame,
 	useVideoConfig,
 } from "remotion";
+import { getRandomSound } from "./background_music/randomSound";
 import { Comment } from "./Helpers/Comment";
 import { InputProps } from "./Helpers/InputProps";
 import { Text } from "./Helpers/Text";
@@ -89,6 +91,13 @@ export const PostView = () => {
 					{user} on {subreddit}
 				</Text>
 			</div>
+
+			{/* Audio */}
+			<Audio
+				src={getRandomSound(title)}
+				endAt={durationInFrames * fps}
+				volume={0.3}
+			/>
 		</div>
 	);
 };
