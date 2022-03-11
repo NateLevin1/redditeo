@@ -10,6 +10,8 @@ import os from "os";
 import path from "path";
 import Snoowrap, { Submission, Subreddit } from "snoowrap";
 import prompts from "prompts";
+import { InputProps } from "./src/Helpers/InputProps";
+import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 
 const compositionId = "PostView";
 const snoowrap = new Snoowrap({
@@ -21,6 +23,31 @@ const snoowrap = new Snoowrap({
 	clientSecret: process.env.clientSecret,
 	refreshToken: process.env.refreshToken,
 });
+const exampleInputProps = {
+	post: {
+		title: "Uhhh…",
+		user: "Twitch_xTUVALUx",
+		subreddit: "r/ProgrammerHumor",
+		seconds: 6,
+		imageUrl: "https://i.redd.it/62s1uswuqam81.jpg",
+	},
+	comment: {
+		text: "As someone who uses auto save I am unable to relate",
+		username: "ExoticPenguins",
+		pfp: "https://styles.redditmedia.com/t5_ynp9i/styles/profileIcon_snoo45f2b6aa-f0fd-49bc-b390-d554bce55612-headshot-f.png?width=256&height=256&crop=256:256,smart&s=40cbba5f7acc5c545015d4a552a774800fe65f99",
+		upvotes: "450",
+		seconds: 6,
+	},
+};
+const ttsClient = new TextToSpeechClient();
+let getAudio = true;
+const publicPath = path.join(__dirname, "public");
+const bgMusic = [
+	path.join(publicPath, "1.mp3"),
+	path.join(publicPath, "2.mp3"),
+	path.join(publicPath, "3.mp3"),
+	path.join(publicPath, "4.mp3"),
+];
 
 async function createVideoFromPost(currentPost: Submission) {
 	// * #### Get the post from reddit
@@ -48,7 +75,7 @@ async function createVideoFromPost(currentPost: Submission) {
 			text: await topComment.body,
 			username: await topComment.author.name,
 			pfp: await topComment.author.icon_img,
-			upvotes: await topComment.ups,
+			upvotes: (await topComment.ups).toString(),
 			seconds: 6,
 		},
 	};
@@ -59,8 +86,41 @@ async function createVideoFromPost(currentPost: Submission) {
 		JSON.stringify(inputProps).replace(/"/g, '\\"').replace(/'/g, "'\\\\''")
 	);
 
-	// * #### Actually do the generating of the video
+	return createVideoFromInputProps(inputProps);
+}
+
+async function createVideoFromInputProps(inputProps: InputProps) {
 	try {
+		// first we create the tmp directory
+		// TODO: should we be deleting this?
+		const tmpDir = await fs.promises.mkdtemp(
+			path.join(os.tmpdir(), "remotion-")
+		);
+
+		// then we create the TTS files
+		if (getAudio) {
+			await Promise.all([
+				getTTS(
+					inputProps.post.title,
+					path.join(__dirname, "public", "title.mp3")
+				),
+				getTTS(
+					inputProps.comment.text,
+					path.join(__dirname, "public", "comment.mp3")
+				),
+			]);
+			console.log("Created TTS files.");
+		}
+
+		const [bgMusicPath, bgMusicIndex] = randomOfArray(bgMusic);
+		if (getAudio) {
+			await fs.promises.copyFile(
+				bgMusicPath,
+				path.join(__dirname, "public", "music.mp3")
+			);
+		}
+
+		// then we make the video
 		const bundled = await bundle(path.join(__dirname, "./src/index.tsx"));
 		const comps = await getCompositions(bundled, {
 			inputProps,
@@ -70,9 +130,6 @@ async function createVideoFromPost(currentPost: Submission) {
 			throw new Error(`No video called ${compositionId}`);
 		}
 
-		const tmpDir = await fs.promises.mkdtemp(
-			path.join(os.tmpdir(), "remotion-")
-		);
 		const { assetsInfo } = await renderFrames({
 			config: video,
 			webpackBundle: bundled,
@@ -107,16 +164,39 @@ async function createVideoFromPost(currentPost: Submission) {
 	}
 }
 
-(async function () {
-	const { singleOrTop } = await prompts({
-		type: "autocomplete",
-		name: "singleOrTop",
-		message: "Single post or top of past day?",
-		choices: [{ title: "single" }, { title: "top" }],
-	});
-	console.log(singleOrTop);
+const ttsVoices = [
+	"en-US-Wavenet-J",
+	"en-US-Wavenet-H",
+	"en-US-Wavenet-G",
+	"en-US-Wavenet-B",
+];
+async function getTTS(text: string, filepath: string) {
+	// Construct the request
+	const request = {
+		input: { text },
+		voice: { languageCode: "en-US", name: randomOfArray(ttsVoices)[0] },
+		audioConfig: { audioEncoding: "MP3", speakingRate: 1.05 },
+	} as const;
 
-	if (singleOrTop === "single") {
+	// Performs the text-to-speech request
+	const [response] = await ttsClient.synthesizeSpeech(request);
+	// Write the binary audio content to a local file
+	if (response.audioContent) {
+		await fs.promises.writeFile(filepath, response.audioContent, "binary");
+	} else {
+		throw "Received no audio!";
+	}
+}
+
+(async function () {
+	const { howToGetPosts } = await prompts({
+		type: "autocomplete",
+		name: "howToGetPosts",
+		message: "How should we get the posts?",
+		choices: [{ title: "top" }, { title: "single" }, { title: "example" }],
+	});
+
+	if (howToGetPosts === "single") {
 		const { postId } = await prompts({
 			type: "text",
 			name: "postId",
@@ -125,7 +205,7 @@ async function createVideoFromPost(currentPost: Submission) {
 		// @ts-ignore
 		const post = (await snoowrap.getSubmission(postId)) as Submission;
 		await createVideoFromPost(post);
-	} else {
+	} else if (howToGetPosts == "top") {
 		const { number } = await prompts({
 			type: "number",
 			name: "number",
@@ -154,5 +234,14 @@ async function createVideoFromPost(currentPost: Submission) {
 		for (const path of paths) {
 			console.log(path);
 		}
+	} else if (howToGetPosts == "example") {
+		getAudio = false;
+		await createVideoFromInputProps(exampleInputProps);
+		console.log("Successfully created video.");
 	}
 })();
+
+function randomOfArray<T>(array: T[]): [T, number] {
+	const ind = Math.floor(Math.random() * array.length);
+	return [array[ind], ind];
+}

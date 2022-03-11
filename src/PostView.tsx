@@ -3,14 +3,19 @@ import {
 	getInputProps,
 	Img,
 	interpolate,
+	Sequence,
+	staticFile,
 	useCurrentFrame,
 	useVideoConfig,
 } from "remotion";
-import { getRandomSound } from "./background_music/randomSound";
 import { Comment } from "./Helpers/Comment";
 import { InputProps } from "./Helpers/InputProps";
 import { Text } from "./Helpers/Text";
 import { useProgress } from "./Helpers/useProgress";
+
+const titleTTS = staticFile("/title.mp3");
+const commentTTS = staticFile("/comment.mp3");
+const backgroundMusic = staticFile("/music.mp3");
 
 export const PostView = () => {
 	const { post, comment } = getInputProps() as InputProps;
@@ -94,10 +99,16 @@ export const PostView = () => {
 
 			{/* Audio */}
 			<Audio
-				src={getRandomSound(title)}
+				src={backgroundMusic}
 				endAt={durationInFrames * fps}
 				volume={0.3}
 			/>
+			<Sequence from={fps} name={"title.mp3"}>
+				<Audio src={titleTTS} />
+			</Sequence>
+			<Sequence from={framesUntilComment + fps} name={"comment.mp3"}>
+				<Audio src={commentTTS} />
+			</Sequence>
 		</div>
 	);
 };
