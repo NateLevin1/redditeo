@@ -17,9 +17,17 @@ const titleTTS = staticFile("/title.mp3");
 const commentTTS = staticFile("/comment.mp3");
 const backgroundMusic = staticFile("/music.mp3");
 
-export const PostView = () => {
+export const PostView = ({
+	postSeconds,
+	titleTTSDuration,
+	commentTTSDuration,
+}: {
+	postSeconds: number;
+	titleTTSDuration?: number;
+	commentTTSDuration?: number;
+}) => {
 	const { post, comment } = getInputProps() as InputProps;
-	const { title, user, subreddit, seconds: postSeconds, imageUrl } = post;
+	const { title, user, subreddit, imageUrl } = post;
 
 	const progress = useProgress();
 	const frame = useCurrentFrame();
@@ -103,10 +111,18 @@ export const PostView = () => {
 				endAt={durationInFrames * fps}
 				volume={0.3}
 			/>
-			<Sequence from={fps} name={"title.mp3"}>
+			<Sequence
+				from={fps}
+				name={"title.mp3"}
+				durationInFrames={titleTTSDuration}
+			>
 				<Audio src={titleTTS} />
 			</Sequence>
-			<Sequence from={framesUntilComment + fps} name={"comment.mp3"}>
+			<Sequence
+				from={framesUntilComment + fps}
+				name={"comment.mp3"}
+				durationInFrames={commentTTSDuration}
+			>
 				<Audio src={commentTTS} />
 			</Sequence>
 		</div>
