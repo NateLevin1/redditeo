@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Convert Reddit posts to a YT-shorts-compatible video.",
 	"scripts": {
-		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"In case you still don'\\''t know how to implement isEven\",\"user\":\"nextlandia\",\"subreddit\":\"r/ProgrammerHumor\",\"seconds\":6,\"imageUrl\":\"https://i.redd.it/07c0cdvitll81.jpg\"},\"comment\":{\"text\":\"POV - you are a computer performing machine learning at 0.000000000001x speed\",\"username\":\"adj16\",\"pfp\":\"https://www.redditstatic.com/avatars/defaults/v2/avatar_default_3.png\",\"upvotes\":2668,\"seconds\":6}}'",
+		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"The Programmer Urge\",\"user\":\"AlleywayTV\",\"subreddit\":\"r/ProgrammerHumor\",\"imageUrl\":\"https://i.redd.it/q0gxwimt2om81.jpg\"},\"comment\":{\"text\":\"Better the janky you know than the janky you don'\\''t.\",\"username\":\"golgol12\",\"pfp\":\"https://www.redditstatic.com/avatars/defaults/v2/avatar_default_5.png\",\"upvotes\":\"1298\"}}'",
 		"remotionBuild": "remotion render src/index.tsx PostView out/video.mp4",
 		"upgrade": "remotion upgrade",
 		"build": "ts-node build.tsx",

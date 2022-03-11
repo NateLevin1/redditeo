@@ -28,7 +28,6 @@ const exampleInputProps = {
 		title: "Uhhh…",
 		user: "Twitch_xTUVALUx",
 		subreddit: "r/ProgrammerHumor",
-		seconds: 6,
 		imageUrl: "https://i.redd.it/62s1uswuqam81.jpg",
 	},
 	comment: {
@@ -36,7 +35,6 @@ const exampleInputProps = {
 		username: "ExoticPenguins",
 		pfp: "https://styles.redditmedia.com/t5_ynp9i/styles/profileIcon_snoo45f2b6aa-f0fd-49bc-b390-d554bce55612-headshot-f.png?width=256&height=256&crop=256:256,smart&s=40cbba5f7acc5c545015d4a552a774800fe65f99",
 		upvotes: "450",
-		seconds: 6,
 	},
 };
 const ttsClient = new TextToSpeechClient();
@@ -68,7 +66,6 @@ async function createVideoFromPost(currentPost: Submission) {
 			title: await currentPost.title,
 			user: await currentPost.author.name,
 			subreddit: "r/" + (await currentPost.subreddit.display_name),
-			seconds: 6,
 			imageUrl: await currentPost.url,
 		},
 		comment: {
@@ -76,7 +73,6 @@ async function createVideoFromPost(currentPost: Submission) {
 			username: await topComment.author.name,
 			pfp: await topComment.author.icon_img,
 			upvotes: (await topComment.ups).toString(),
-			seconds: 6,
 		},
 	};
 	console.log(
@@ -175,7 +171,7 @@ async function getTTS(text: string, filepath: string) {
 	const request = {
 		input: { text },
 		voice: { languageCode: "en-US", name: randomOfArray(ttsVoices)[0] },
-		audioConfig: { audioEncoding: "MP3", speakingRate: 1.05 },
+		audioConfig: { audioEncoding: "MP3", speakingRate: 1.02 },
 	} as const;
 
 	// Performs the text-to-speech request

@@ -3,7 +3,6 @@ export type InputProps = {
 		title: string;
 		user: string;
 		subreddit: string;
-		seconds: number;
 		imageUrl: string;
 	};
 	comment: {
@@ -11,6 +10,5 @@ export type InputProps = {
 		username: string;
 		pfp: string;
 		upvotes: string;
-		seconds: number;
 	};
 };

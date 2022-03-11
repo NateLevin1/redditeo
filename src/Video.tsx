@@ -10,10 +10,6 @@ const commentTTS = staticFile("/comment.mp3");
 
 export const RemotionVideo: React.FC = () => {
 	const fps = 30;
-	const {
-		post: { seconds: postSecondsOriginal },
-		comment: { seconds: commentSecondsOriginal },
-	} = getInputProps() as InputProps;
 
 	const [titleTTSDuration, setTitleTTSDuration] = useState<number>();
 	const [commentTTSDuration, setCommentTTSDuration] = useState<number>();
@@ -27,14 +23,8 @@ export const RemotionVideo: React.FC = () => {
 		getAudioDurations();
 	}, []);
 
-	const postSeconds = Math.max(
-		postSecondsOriginal,
-		5 + (titleTTSDuration ?? 0) / fps
-	);
-	const commentSeconds = Math.max(
-		commentSecondsOriginal,
-		4 + (commentTTSDuration ?? 0) / fps
-	);
+	const postSeconds = 7 + Math.ceil((titleTTSDuration ?? 0) / fps / 3);
+	const commentSeconds = Math.max(6, 4 + (commentTTSDuration ?? 0) / fps);
 
 	const seconds = postSeconds + commentSeconds;
 
