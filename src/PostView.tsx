@@ -58,7 +58,9 @@ export const PostView = ({
 					top: `calc(-5% + ${progress * -10}%)`,
 					left: "-5%",
 					zIndex: "0",
-					filter: "blur(24px) hue-rotate(-15deg) brightness(0.8)",
+					filter: `blur(24px) hue-rotate(-${
+						5 + progress * 50
+					}deg) brightness(0.8)`,
 					objectFit: "cover",
 					transform: `scale(${1 + progress * 0.05})`,
 				}}
