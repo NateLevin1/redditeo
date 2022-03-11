@@ -27,7 +27,7 @@ export const Text = ({
 	return (
 		<div
 			style={{
-				fontSize: `${10.5 - content.length * 0.065}em`,
+				fontSize: `${lengthToFontSize(content.length)}em`,
 				lineHeight: "0.89em",
 				color: color,
 				WebkitTextStroke: "0.06em black",
@@ -45,4 +45,14 @@ export const Text = ({
 
 function getRandomColor(seed: string) {
 	return colors[Math.floor(random(seed) * colors.length)];
+}
+
+function lengthToFontSize(length: number) {
+	// this is magic that should look good most of the time
+	// graph: https://www.desmos.com/calculator/lxss3qqhtp
+	const a = 1.7 * Math.pow(10, 15);
+	const h = -226;
+	const p = -6.04;
+	const k = 2.99312;
+	return a * Math.pow(length - h, p) + k;
 }

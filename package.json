@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Convert Reddit posts to a YT-shorts-compatible video.",
 	"scripts": {
-		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"The Programmer Urge\",\"user\":\"AlleywayTV\",\"subreddit\":\"r/ProgrammerHumor\",\"imageUrl\":\"https://i.redd.it/q0gxwimt2om81.jpg\"},\"comment\":{\"text\":\"Better the janky you know than the janky you don'\\''t.\",\"username\":\"golgol12\",\"pfp\":\"https://www.redditstatic.com/avatars/defaults/v2/avatar_default_5.png\",\"upvotes\":\"1298\"}}'",
+		"start": "remotion preview src/index.tsx --props='{\"post\":{\"title\":\"Well I guess its true when they say technology will be the reason the world ends. PS : That'\\''s why you should hire good programmers\",\"user\":\"Snoo-66850\",\"subreddit\":\"r/ProgrammerHumor\",\"imageUrl\":\"https://i.redd.it/p0l3bpycssm81.jpg\"},\"comment\":{\"text\":\"I guess this is worse then the intern sending the push notification\",\"username\":\"jochem4208\",\"pfp\":\"https://styles.redditmedia.com/t5_a6rti/styles/profileIcon_snood56b9028-0f79-4047-84e0-f87689cefeee-headshot.png?width=256&height=256&crop=256:256,smart&s=d98c3aabc6994f9f8e14fb02df5390df46019750\",\"upvotes\":\"48\"}}'",
 		"remotionBuild": "remotion render src/index.tsx PostView out/video.mp4",
 		"upgrade": "remotion upgrade",
 		"build": "ts-node build.tsx",
