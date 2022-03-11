@@ -1,7 +1,6 @@
-import { Composition, getInputProps, staticFile } from "remotion";
+import { Composition, continueRender, delayRender, staticFile } from "remotion";
 import { PostView } from "./PostView";
 import "./font.css";
-import { InputProps } from "./Helpers/InputProps";
 import { useCallback, useEffect, useState } from "react";
 import { getAudioDuration } from "@remotion/media-utils";
 
@@ -10,6 +9,7 @@ const commentTTS = staticFile("/comment.mp3");
 
 export const RemotionVideo: React.FC = () => {
 	const fps = 30;
+	const [handle] = useState(() => delayRender());
 
 	const [titleTTSDuration, setTitleTTSDuration] = useState<number>();
 	const [commentTTSDuration, setCommentTTSDuration] = useState<number>();
@@ -18,6 +18,7 @@ export const RemotionVideo: React.FC = () => {
 		setCommentTTSDuration(
 			Math.ceil((await getAudioDuration(commentTTS)) * fps)
 		);
+		continueRender(handle);
 	}, []);
 	useEffect(() => {
 		getAudioDurations();
