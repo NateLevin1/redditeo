@@ -24,10 +24,15 @@ export const Text = ({
 		return "white";
 	}, []);
 
+	// this is expensive math, cache it
+	const fontSize = useMemo(() => {
+		return lengthToFontSize(content.length);
+	}, []);
+
 	return (
 		<div
 			style={{
-				fontSize: `${lengthToFontSize(content.length)}em`,
+				fontSize: `${fontSize}em`,
 				lineHeight: "0.89em",
 				color: color,
 				WebkitTextStroke: "0.06em black",
