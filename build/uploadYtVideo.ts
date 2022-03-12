@@ -46,7 +46,7 @@ export const uploadVideo = (
 };
 
 export function getTitle(title: string) {
-	return `${title} | #shorts`;
+	return `${title.substring(0, 89)} | #shorts`;
 }
 export function getDescription(title: string, songUrl: string) {
 	return `${title}\n\nSubscribe for a cookie 🍪!\nSong: ${songUrl}`;
