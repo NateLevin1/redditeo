@@ -13,7 +13,7 @@ import prompts from "prompts";
 import { InputProps } from "../src/Helpers/InputProps";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { authorize } from "./ytAuthorize";
-import { uploadVideo } from "./uploadYtVideo";
+import { getDescription, getTitle, tags, uploadVideo } from "./uploadYtVideo";
 
 let songs: string[];
 
@@ -222,22 +222,50 @@ async function getTTS(text: string, filepath: string) {
 			createdVideos.push(createdVideo);
 		}
 	} else if (howToGetPosts == "top") {
-		const { number } = await prompts({
-			type: "number",
-			name: "number",
-			message: "How many of the top posts should be used?",
-			min: 1,
-			max: 50,
-		});
+		const { number, subredditString, time } = await prompts([
+			{
+				type: "number",
+				name: "number",
+				message: "How many of the top posts should be used?",
+				min: 1,
+				max: 50,
+			},
+			{
+				type: "autocomplete",
+				name: "subredditString",
+				message: "What subreddit?",
+				choices: [
+					"programmerhumor",
+					"memes",
+					"crappyoffbrands",
+					"dankmemes",
+					"im14andthisisdeep",
+					"funny",
+					"DiWHY",
+				].map((title) => {
+					return { title };
+				}),
+			},
+			{
+				type: "autocomplete",
+				name: "time",
+				message: "What time should we select from?",
+				choices: ["hour", "day", "week", "month", "year", "all"].map(
+					(title) => {
+						return { title };
+					}
+				),
+			},
+		]);
 
 		// @ts-ignore
 		const subreddit = (await snoowrap.getSubreddit(
-			"programmerhumor"
+			subredditString
 		)) as Subreddit;
 
-		const topPosts = await subreddit.getTop({ time: "day", limit: number });
+		const topPosts = await subreddit.getTop({ time, limit: number });
 		for (const post of topPosts) {
-			if (!post.is_video && !post.over_18) {
+			if (!post.is_video && !post.over_18 && !post.is_self) {
 				const createdVideo = await createVideoFromPost(post);
 				if (createdVideo) {
 					createdVideos.push(createdVideo);
@@ -275,9 +303,29 @@ async function getTTS(text: string, filepath: string) {
 			})`,
 		});
 		if (shouldUpload) {
-			const { path, title, songUrl } = createdVideo;
+			const { path: videoPath, title, songUrl } = createdVideo;
 			console.log("Uploading video...");
-			await uploadVideo(ytAuth, path, title, songUrl);
+			try {
+				await uploadVideo(ytAuth, videoPath, title, songUrl);
+			} catch (e) {
+				console.log("Something went wrong uploading the video! " + e);
+				await fs.promises.copyFile(
+					videoPath,
+					path.join(__dirname, `../out/${i}.mp4`)
+				);
+				await fs.promises.writeFile(
+					path.join(__dirname, `../out/${i}.json`),
+					JSON.stringify(
+						{
+							title: getTitle(title),
+							description: getDescription(title, songUrl),
+							tags: tags.join(","),
+						},
+						null,
+						4
+					)
+				);
+			}
 		}
 	}
 })();

@@ -17,53 +17,13 @@ export const uploadVideo = (
 				requestBody: {
 					// Video title and description
 					snippet: {
-						title: `${title} | #shorts`,
-						description: `${title}\n\nSubscribe for a cookie 🍪!\nSong: ${songUrl}`,
-						// tweak tags for algorithm juice
-						tags: [
-							"reddit",
-							"funny",
-							"meme",
-							"reddit reading",
-							"rediteo",
-							"redditeo",
-							"voiceover",
-							"cool",
-							"ama",
-							"reddit video",
-							"lol",
-							"comments",
-							"programming",
-							"memes",
-							"dank",
-							"dank memes",
-							"r/",
-							"reddit/",
-							"subreddit",
-							"subreddits",
-							"funny",
-							"r/funny",
-							"programmerhumor",
-							"r/programmerhumor",
-							"memes",
-							"r/memes",
-							"showerthoughts",
-							"r/showerthoughts",
-							"dankmemes",
-							"r/dankmemes",
-							"4chan",
-							"r/4chan",
-							"greentext",
-							"r/greentext",
-							"cursedcomments",
-							"r/cursedcomments",
-							"unexpected",
-							"r/unexpected",
-						],
+						title: getTitle(title),
+						description: getDescription(title, songUrl),
+						tags,
 					},
 					// set to private for tests
 					status: {
-						privacyStatus: "private",
+						privacyStatus: "public",
 					},
 				},
 
@@ -84,3 +44,58 @@ export const uploadVideo = (
 		);
 	});
 };
+
+export function getTitle(title: string) {
+	return `${title} | #shorts`;
+}
+export function getDescription(title: string, songUrl: string) {
+	return `${title}\n\nSubscribe for a cookie 🍪!\nSong: ${songUrl}`;
+}
+
+// tweak tags for algorithm juice
+export const tags = [
+	"reddit",
+	"funny",
+	"meme",
+	"reddit reading",
+	"rediteo",
+	"redditeo",
+	"voiceover",
+	"cool",
+	"ama",
+	"reddit video",
+	"lol",
+	"comments",
+	"programming",
+	"memes",
+	"dank",
+	"dank memes",
+	"r/",
+	"reddit/",
+	"subreddit",
+	"subreddits",
+	"funny",
+	"r/funny",
+	"programmerhumor",
+	"r/programmerhumor",
+	"memes",
+	"r/memes",
+	"showerthoughts",
+	"r/showerthoughts",
+	"dankmemes",
+	"r/dankmemes",
+	"4chan",
+	"r/4chan",
+	"greentext",
+	"r/greentext",
+	"cursedcomments",
+	"r/cursedcomments",
+	"unexpected",
+	"r/unexpected",
+	"cursedcomments",
+	"r/cursedcomments",
+	"diwhy",
+	"r/diwhy",
+	"crappyoffbrands",
+	"r/crappyoffbrands",
+];
