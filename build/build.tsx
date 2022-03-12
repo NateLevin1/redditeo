@@ -10,8 +10,12 @@ import os from "os";
 import path from "path";
 import Snoowrap, { Submission, Subreddit } from "snoowrap";
 import prompts from "prompts";
-import { InputProps } from "./src/Helpers/InputProps";
+import { InputProps } from "../src/Helpers/InputProps";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
+import { authorize } from "./ytAuthorize";
+import { uploadVideo } from "./uploadYtVideo";
+
+let songs: string[];
 
 const compositionId = "PostView";
 const snoowrap = new Snoowrap({
@@ -39,7 +43,7 @@ const exampleInputProps = {
 };
 const ttsClient = new TextToSpeechClient();
 let getAudio = true;
-const publicPath = path.join(__dirname, "public");
+const publicPath = path.join(__dirname, "../", "public");
 const bgMusic = [
 	path.join(publicPath, "1.mp3"),
 	path.join(publicPath, "2.mp3"),
@@ -96,14 +100,8 @@ async function createVideoFromInputProps(inputProps: InputProps) {
 		// then we create the TTS files
 		if (getAudio) {
 			await Promise.all([
-				getTTS(
-					inputProps.post.title,
-					path.join(__dirname, "public", "title.mp3")
-				),
-				getTTS(
-					inputProps.comment.text,
-					path.join(__dirname, "public", "comment.mp3")
-				),
+				getTTS(inputProps.post.title, path.join(publicPath, "title.mp3")),
+				getTTS(inputProps.comment.text, path.join(publicPath, "comment.mp3")),
 			]);
 			console.log("Created TTS files.");
 		}
@@ -112,12 +110,12 @@ async function createVideoFromInputProps(inputProps: InputProps) {
 		if (getAudio) {
 			await fs.promises.copyFile(
 				bgMusicPath,
-				path.join(__dirname, "public", "music.mp3")
+				path.join(publicPath, "music.mp3")
 			);
 		}
 
 		// then we make the video
-		const bundled = await bundle(path.join(__dirname, "./src/index.tsx"));
+		const bundled = await bundle(path.join(__dirname, "../src/index.tsx"));
 		const comps = await getCompositions(bundled, {
 			inputProps,
 		});
@@ -154,7 +152,11 @@ async function createVideoFromInputProps(inputProps: InputProps) {
 			assetsInfo,
 		});
 		console.log("Finished rendering! " + finalOutput);
-		return finalOutput;
+		return {
+			path: finalOutput,
+			title: `"${inputProps.post.title}" on ${inputProps.post.subreddit}`,
+			songUrl: songs[bgMusicIndex],
+		};
 	} catch (err) {
 		console.error(err);
 	}
@@ -185,6 +187,21 @@ async function getTTS(text: string, filepath: string) {
 }
 
 (async function () {
+	let createdVideos: CreatedVideo[] = [];
+	songs = JSON.parse(
+		await fs.promises.readFile(path.join(__dirname, "../public/credits.json"), {
+			encoding: "utf-8",
+		})
+	);
+
+	console.log("Getting YouTube credentials...");
+	const ytClientSecret = await fs.promises.readFile(
+		path.join(__dirname, "youtube_client_secret.json"),
+		{ encoding: "utf-8" }
+	);
+	const ytAuth = await authorize(JSON.parse(ytClientSecret));
+	console.log("Got YouTube credentials!");
+
 	const { howToGetPosts } = await prompts({
 		type: "autocomplete",
 		name: "howToGetPosts",
@@ -200,7 +217,10 @@ async function getTTS(text: string, filepath: string) {
 		});
 		// @ts-ignore
 		const post = (await snoowrap.getSubmission(postId)) as Submission;
-		await createVideoFromPost(post);
+		const createdVideo = await createVideoFromPost(post);
+		if (createdVideo) {
+			createdVideos.push(createdVideo);
+		}
 	} else if (howToGetPosts == "top") {
 		const { number } = await prompts({
 			type: "number",
@@ -209,7 +229,6 @@ async function getTTS(text: string, filepath: string) {
 			min: 1,
 			max: 50,
 		});
-		let paths: string[] = [];
 
 		// @ts-ignore
 		const subreddit = (await snoowrap.getSubreddit(
@@ -219,21 +238,46 @@ async function getTTS(text: string, filepath: string) {
 		const topPosts = await subreddit.getTop({ time: "day", limit: number });
 		for (const post of topPosts) {
 			if (!post.is_video && !post.over_18) {
-				const path = await createVideoFromPost(post);
-				if (path) {
-					paths.push(path);
+				const createdVideo = await createVideoFromPost(post);
+				if (createdVideo) {
+					createdVideos.push(createdVideo);
 				}
 			}
 		}
-
-		console.log("\n\n\nCREATED VIDEOS!");
-		for (const path of paths) {
-			console.log(path);
-		}
 	} else if (howToGetPosts == "example") {
 		getAudio = false;
-		await createVideoFromInputProps(exampleInputProps);
-		console.log("Successfully created video.");
+		const createdVideo = await createVideoFromInputProps(exampleInputProps);
+		if (createdVideo) {
+			createdVideos.push(createdVideo);
+		}
+	}
+
+	console.log("\n\n\nCREATED VIDEOS!");
+	for (const createdVideo of createdVideos) {
+		console.log(createdVideo.path);
+	}
+	console.log("\n\n");
+
+	const { shouldUploadAny } = await prompts({
+		type: "confirm",
+		name: "shouldUploadAny",
+		message: `Should any videos be uploaded?`,
+	});
+	if (!shouldUploadAny) return;
+
+	for (var i = 0; i < createdVideos.length; i++) {
+		const createdVideo = createdVideos[i];
+		const { shouldUpload } = await prompts({
+			type: "confirm",
+			name: "shouldUpload",
+			message: `Should video #${i + 1} be uploaded? (${createdVideo.title}, ${
+				createdVideo.path
+			})`,
+		});
+		if (shouldUpload) {
+			const { path, title, songUrl } = createdVideo;
+			uploadVideo(ytAuth, path, title, songUrl);
+		}
 	}
 })();
 
@@ -241,3 +285,9 @@ function randomOfArray<T>(array: T[]): [T, number] {
 	const ind = Math.floor(Math.random() * array.length);
 	return [array[ind], ind];
 }
+
+type CreatedVideo = {
+	path: string;
+	title: string;
+	songUrl: string;
+};
