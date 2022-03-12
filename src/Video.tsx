@@ -25,9 +25,12 @@ export const RemotionVideo: React.FC = () => {
 	}, []);
 
 	const postSeconds = 7 + Math.ceil((titleTTSDuration ?? 0) / fps / 3);
-	const commentSeconds = Math.max(6, 4 + (commentTTSDuration ?? 0) / fps);
+	const commentSeconds = Math.max(
+		6,
+		4 + Math.ceil((commentTTSDuration ?? 0) / fps)
+	);
 
-	const seconds = postSeconds + commentSeconds;
+	const seconds = Math.round(postSeconds + commentSeconds);
 
 	return (
 		<>
