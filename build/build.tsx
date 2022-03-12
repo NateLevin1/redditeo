@@ -58,7 +58,8 @@ async function createVideoFromPost(currentPost: Submission) {
 	let index = 0;
 	do {
 		topComment = currentPost.comments.fetchMore({ amount: index + 1 })[index];
-		if ((await topComment.body).length > 80) {
+		const body = await topComment.body;
+		if (body.length > 80 || body == "[deleted]") {
 			index++;
 			continue;
 		}
@@ -75,7 +76,10 @@ async function createVideoFromPost(currentPost: Submission) {
 		comment: {
 			text: await topComment.body,
 			username: await topComment.author.name,
-			pfp: await topComment.author.icon_img,
+			pfp:
+				(await topComment.author.name) == "[deleted]"
+					? "https://www.thewindowsclub.com/wp-content/uploads/2018/06/Broken-image-icon-in-Chrome.gif"
+					: await topComment.author.icon_img,
 			upvotes: (await topComment.ups).toString(),
 		},
 	};
@@ -309,22 +313,20 @@ async function getTTS(text: string, filepath: string) {
 				await uploadVideo(ytAuth, videoPath, title, songUrl);
 			} catch (e) {
 				console.log("Something went wrong uploading the video! " + e);
-				await fs.promises.copyFile(
-					videoPath,
-					path.join(__dirname, `../out/${i}.mp4`)
-				);
+				const savePath = path.join(__dirname, `../out/${i}.mp4`);
+				await fs.promises.copyFile(videoPath, savePath);
 				await fs.promises.writeFile(
-					path.join(__dirname, `../out/${i}.json`),
-					JSON.stringify(
-						{
-							title: getTitle(title),
-							description: getDescription(title, songUrl),
-							tags: tags.join(","),
-						},
-						null,
-						4
-					)
+					path.join(__dirname, `../out/${i}.txt`),
+					`[title]
+${getTitle(title)}
+
+[description]
+${getDescription(title, songUrl)}
+
+[tags]
+${tags.join(",")}`
 				);
+				console.log(`Saved video to ${savePath}`);
 			}
 		}
 	}
