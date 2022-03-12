@@ -276,7 +276,8 @@ async function getTTS(text: string, filepath: string) {
 		});
 		if (shouldUpload) {
 			const { path, title, songUrl } = createdVideo;
-			uploadVideo(ytAuth, path, title, songUrl);
+			console.log("Uploading video...");
+			await uploadVideo(ytAuth, path, title, songUrl);
 		}
 	}
 })();
